@@ -1,4 +1,8 @@
-# This is a sample Python script.
+# TODO: TIC TAC TOE GAME
+# TODO: Set up Beeware
+# TODO: Create Android program with Hello World
+# TODO: Write the GAME
+# TODO: Publish it on Play Store
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
