@@ -5,25 +5,55 @@ import pygame
 # (0,0) = Top Left Corner
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+
 GAME_NAME = "TIC TAC TOE MotherFucker"
+pygame.display.set_caption(GAME_NAME)
+
+class Tiles(pygame.sprite.Sprite):
+    def __init__(self):
+        super(Tiles, self).__init__()
+
+        self.surf = pygame.Surface((200, 0))
+        self.surf.fill((255, 255, 255))
+        self.rect = self.surf.get_rect()
 
 
 class TicTacToe:
     def __init__(self):
+
         self.tic_tac_table = [
             ["", "", ""],
             ["", "", ""],
             ["", "", ""],
         ]
+        self.tiles = {
+            # First Row
+            (0, 0): (200, 0),
+            (0, 1): (400, 0),
+            (0, 2): (600, 0),
+
+            # Second Row
+            (1, 0): (200, 200),
+            (1, 1): (400, 200),
+            (1, 2): (600, 200),
+
+            # Third Row
+            (2, 0): (200, 400),
+            (2, 1): (400, 400),
+            (2, 2): (600, 400),
+        }
         self.player1 = {
-            "name": "Player 1",
+            "name": "Player X",
             "occupied_tiles": [(), (), ()],
-            "turns": 0
+            "turns": 0,
+            "image": "images/Player_X.png"
         }
         self.player2 = {
-            "name": "Player 2",
+            "name": "Player O",
             "occupied_tiles": [(), (), ()],
-            "turns": 0
+            "turns": 0,
+            "image": "images/Player_O.png"
         }
         self.players = [self.player1, self.player2]
         self.turns = 0
@@ -35,23 +65,31 @@ class TicTacToe:
                f"{self.tic_tac_table[1][:]}\n" \
                f"{self.tic_tac_table[2][:]}\n"
 
+    def get_tiles(self, table_coord):
+        return self.tiles[table_coord]
+
+    def draw_x(self):
+        pass
+
     @staticmethod
     def draw_table():
-        screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
-        pygame.display.set_caption(GAME_NAME)
+        background = pygame.image.load("images/Bamboo_bc_1.bmp")
+        screen.blit(background, [0, 0])
 
-        table_color = pygame.Color(30, 180, 0)
+
+        # -- update the table
+        line_color = pygame.Color(30, 180, 0)
         # Vertical
-        pygame.draw.line(screen, table_color, (200, 0), (200, 600), 10)
-        pygame.draw.line(screen, table_color, (400, 0), (400, 600), 10)
-        pygame.draw.line(screen, table_color, (600, 0), (600, 600), 10)
-        pygame.draw.line(screen, table_color, (800, 0), (800, 600), 10)
+        pygame.draw.line(screen, line_color, (200, 0), (200, 600), 10)
+        pygame.draw.line(screen, line_color, (400, 0), (400, 600), 10)
+        pygame.draw.line(screen, line_color, (600, 0), (600, 600), 10)
+        pygame.draw.line(screen, line_color, (800, 0), (800, 600), 10)
 
         # Horizontal
-        pygame.draw.line(screen, table_color, (200, 0), (800, 0), 10)
-        pygame.draw.line(screen, table_color, (200, 200), (800, 200), 10)
-        pygame.draw.line(screen, table_color, (200, 400), (800, 400), 10)
-        pygame.draw.line(screen, table_color, (200, 600), (800, 600), 10)
+        pygame.draw.line(screen, line_color, (200, 0), (800, 0), 10)
+        pygame.draw.line(screen, line_color, (200, 200), (800, 200), 10)
+        pygame.draw.line(screen, line_color, (200, 400), (800, 400), 10)
+        pygame.draw.line(screen, line_color, (200, 600), (800, 600), 10)
 
     def update_player(self, tile):
         if not self.tic_tac_table[tile[0]][tile[1]]:
@@ -66,13 +104,25 @@ class TicTacToe:
         for i in range(3):
             for j in range(3):
                 self.tic_tac_table[i][j] = ""
+                # ledurni az osszes sprite-ot
 
         for i in range(3):
             for j in range(3):
                 if (i, j) in self.player1["occupied_tiles"][:]:
                     self.tic_tac_table[i][j] = "X"
+
+                    # draw all X
+                    x_image = pygame.image.load(self.player1["image"])
+                    screen.blit(x_image, self.get_tiles((i, j)))
+
                 if (i, j) in self.player2["occupied_tiles"][:]:
                     self.tic_tac_table[i][j] = "O"
+
+                    # draw all O
+                    o_image = pygame.image.load(self.player2["image"])
+                    screen.blit(o_image, self.get_tiles((i, j)))
+
+        pygame.display.flip()
 
     def check_winner(self):
         # First Row
@@ -89,7 +139,7 @@ class TicTacToe:
         elif self.tic_tac_table[0][0] == self.tic_tac_table[1][0] == self.tic_tac_table[2][0] != "":
             print("The winner is:", self.tic_tac_table[0][0])
         # Second Column
-        elif self.tic_tac_table[0][1] == self.tic_tac_table[1][1] == self.tic_tac_table[1][2] != "":
+        elif self.tic_tac_table[0][1] == self.tic_tac_table[1][1] == self.tic_tac_table[2][1] != "":
             print("The winner is:", self.tic_tac_table[0][1])
         # Third Column
         elif self.tic_tac_table[2][0] == self.tic_tac_table[2][1] == self.tic_tac_table[2][2] != "":
@@ -187,3 +237,4 @@ if __name__ == '__main__':
 
     game = TicTacToe()
     game.start_game()
+
