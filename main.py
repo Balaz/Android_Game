@@ -10,14 +10,21 @@ screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 GAME_NAME = "TIC TAC TOE MotherFucker"
 pygame.display.set_caption(GAME_NAME)
 
-class Tiles(pygame.sprite.Sprite):
-    def __init__(self):
-        super(Tiles, self).__init__()
+RED = (50, 0, 0)
+BLUE = (0, 0, 50)
 
-        self.surf = pygame.Surface((200, 0))
-        self.surf.fill((255, 255, 255))
-        self.rect = self.surf.get_rect()
 
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, i, j, color):
+        # self.x_image = pygame.image.load("images/Player_X.png")
+        # screen.blit(self.x_image, (i, j))
+       pygame.sprite.Sprite.__init__(self)
+       self.image = pygame.Surface((50, 50))
+       self.image.fill(color)
+       self.rect = self.image.get_rect()
+       self.rect.center = (i, j)
+
+all_tiles = pygame.sprite.Group()
 
 class TicTacToe:
     def __init__(self):
@@ -47,13 +54,15 @@ class TicTacToe:
             "name": "Player X",
             "occupied_tiles": [(), (), ()],
             "turns": 0,
-            "image": "images/Player_X.png"
+            "image": "images/Player_X.png",
+            "color" : RED
         }
         self.player2 = {
             "name": "Player O",
             "occupied_tiles": [(), (), ()],
             "turns": 0,
-            "image": "images/Player_O.png"
+            "image": "images/Player_O.png",
+            "color": BLUE
         }
         self.players = [self.player1, self.player2]
         self.turns = 0
@@ -76,9 +85,8 @@ class TicTacToe:
         background = pygame.image.load("images/Bamboo_bc_1.bmp")
         screen.blit(background, [0, 0])
 
-
         # -- update the table
-        line_color = pygame.Color(30, 180, 0)
+        line_color = pygame.Color(0, 0, 0)
         # Vertical
         pygame.draw.line(screen, line_color, (200, 0), (200, 600), 10)
         pygame.draw.line(screen, line_color, (400, 0), (400, 600), 10)
@@ -96,6 +104,12 @@ class TicTacToe:
             player = self.players[0] if self.player1_turn else self.players[1]
 
             player["occupied_tiles"][player["turns"]] = (tile[0], tile[1])
+
+            #TODO   Wrong IMAGE
+            #       No more than 3 X and O
+            tiles = self.get_tiles((tile[0], tile[1]))
+            all_tiles.add(Tile(tiles[0], tiles[1], player["color"]))
+
             player["turns"] = (player["turns"] + 1) % 3
             self.player1_turn = not self.player1_turn
 
@@ -104,24 +118,25 @@ class TicTacToe:
         for i in range(3):
             for j in range(3):
                 self.tic_tac_table[i][j] = ""
-                # ledurni az osszes sprite-ot
-
-        for i in range(3):
-            for j in range(3):
                 if (i, j) in self.player1["occupied_tiles"][:]:
                     self.tic_tac_table[i][j] = "X"
-
-                    # draw all X
-                    x_image = pygame.image.load(self.player1["image"])
-                    screen.blit(x_image, self.get_tiles((i, j)))
-
-                if (i, j) in self.player2["occupied_tiles"][:]:
+                elif (i, j) in self.player2["occupied_tiles"][:]:
                     self.tic_tac_table[i][j] = "O"
 
-                    # draw all O
-                    o_image = pygame.image.load(self.player2["image"])
-                    screen.blit(o_image, self.get_tiles((i, j)))
+                '''
+                # draw all X
+                x_image = pygame.image.load(self.player1["image"])
+                screen.blit(x_image, self.get_tiles((i, j)))
+                #x_tile = Tile(i,j)
+                #self.Xes.add(x_tile)
 
+                # draw all O
+                o_image = pygame.image.load(self.player2["image"])
+                screen.blit(o_image, self.get_tiles((i, j)))
+                '''
+
+        #all_tiles.update()
+        all_tiles.draw(screen)
         pygame.display.flip()
 
     def check_winner(self):
