@@ -9,31 +9,81 @@ screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
 GAME_NAME = "TIC TAC TOE MotherFucker"
 pygame.display.set_caption(GAME_NAME)
+background = pygame.image.load("images/Bamboo_bc_1.bmp").convert()
 
-RED = (50, 0, 0)
-BLUE = (0, 0, 50)
+x_mark = pygame.image.load("images/Player_X.png").convert_alpha()
+o_mark = pygame.image.load("images/Player_O.png").convert_alpha()
 
+class Tiles(pygame.sprite.Sprite):
+    def __init__(self, new_image, x, y):
+        # Call the parent class (Sprite) constructor
+        pygame.sprite.Sprite.__init__(self)
+        self.image = new_image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.x = y
 
-class Tile(pygame.sprite.Sprite):
-    def __init__(self, i, j, color):
-        # self.x_image = pygame.image.load("images/Player_X.png")
-        # screen.blit(self.x_image, (i, j))
-       pygame.sprite.Sprite.__init__(self)
-       self.image = pygame.Surface((50, 50))
-       self.image.fill(color)
-       self.rect = self.image.get_rect()
-       self.rect.center = (i, j)
+        self.update()
 
-all_tiles = pygame.sprite.Group()
+    def update(self):
+        self.rect.x += 50
+        self.rect.x += 50
+
+# Tiles as pieces on the board - if I click on a certain Tile object it will change accordingly
+class Board:
+    def __init__(self):
+        tile_width = 200
+        tile_height = 200
+
+        # First Row
+        self.tile1 = pygame.Rect(200, 0, tile_width, tile_height)
+        self.tile2 = pygame.Rect(400, 0, tile_width, tile_height)
+        self.tile3 = pygame.Rect(600, 0, tile_width, tile_height)
+        # Second Row
+        self.tile4 = pygame.Rect(200, 200, tile_width, tile_height)
+        self.tile5 = pygame.Rect(400, 200, tile_width, tile_height)
+        self.tile6 = pygame.Rect(600, 200, tile_width, tile_height)
+        # Third Row
+        self.tile7 = pygame.Rect(200, 400, tile_width, tile_height)
+        self.tile8 = pygame.Rect(400, 400, tile_width, tile_height)
+        self.tile9 = pygame.Rect(600, 400, tile_width, tile_height)
+
+        self.tiles_on_board = [
+            self.tile1, self.tile2, self.tile3,
+            self.tile4, self.tile5, self.tile6,
+            self.tile7, self.tile8, self.tile9
+        ]
+
+        self.tiles = {
+            # First Row
+            (200, 0): (0, 0),
+            (400, 0): (0, 1),
+            (600, 0): (0, 2),
+
+            # Second Row
+            (200, 200): (1, 0),
+            (400, 200): (1, 1),
+            (600, 200): (1, 2),
+
+            # Third Row
+            (200, 400): (2, 0),
+            (400, 400): (2, 1),
+            (600, 400): (2, 2),
+        }
 
 class TicTacToe:
     def __init__(self):
 
+        self.sprite_X = Tiles(x_mark, 200, 0)
+        self.sprite_O = Tiles(o_mark, 200, 0)
+
+        self.board = Board()
         self.tic_tac_table = [
             ["", "", ""],
             ["", "", ""],
-            ["", "", ""],
+            ["", "", ""]
         ]
+
         self.tiles = {
             # First Row
             (0, 0): (200, 0),
@@ -50,19 +100,20 @@ class TicTacToe:
             (2, 1): (400, 400),
             (2, 2): (600, 400),
         }
+
         self.player1 = {
             "name": "Player X",
             "occupied_tiles": [(), (), ()],
             "turns": 0,
-            "image": "images/Player_X.png",
-            "color" : RED
+            "mark": "X",
+            "image": x_mark,
         }
         self.player2 = {
             "name": "Player O",
             "occupied_tiles": [(), (), ()],
             "turns": 0,
-            "image": "images/Player_O.png",
-            "color": BLUE
+            "mark": "O",
+            "image": o_mark,
         }
         self.players = [self.player1, self.player2]
         self.turns = 0
@@ -74,15 +125,9 @@ class TicTacToe:
                f"{self.tic_tac_table[1][:]}\n" \
                f"{self.tic_tac_table[2][:]}\n"
 
-    def get_tiles(self, table_coord):
-        return self.tiles[table_coord]
-
-    def draw_x(self):
-        pass
-
     @staticmethod
     def draw_table():
-        background = pygame.image.load("images/Bamboo_bc_1.bmp")
+
         screen.blit(background, [0, 0])
 
         # -- update the table
@@ -99,45 +144,40 @@ class TicTacToe:
         pygame.draw.line(screen, line_color, (200, 400), (800, 400), 10)
         pygame.draw.line(screen, line_color, (200, 600), (800, 600), 10)
 
+        pygame.display.update()
+
+    def update_screen(self, tile):
+        # UPDATE ALL THE SPRITES
+        # maybe the sprite.update redraw all the sprites
+
+        if self.player1_turn:
+            screen.blit(self.player1["image"], tile)
+        else:
+            screen.blit(self.player2["image"], tile)
+
+        pygame.display.update()
+
     def update_player(self, tile):
-        if not self.tic_tac_table[tile[0]][tile[1]]:
-            player = self.players[0] if self.player1_turn else self.players[1]
+        #If the cursor is on the Board
+        if tile in self.board.tiles:
+            board_coord = self.board.tiles[tile]
 
-            player["occupied_tiles"][player["turns"]] = (tile[0], tile[1])
+            #If there is no mark on the Tile
+            if not self.tic_tac_table[board_coord[0]][board_coord[1]]:
+                player = self.players[0] if self.player1_turn else self.players[1]
+                self.tic_tac_table[board_coord[0]][board_coord[1]] = player["mark"]
 
-            #TODO   Wrong IMAGE
-            #       No more than 3 X and O
-            tiles = self.get_tiles((tile[0], tile[1]))
-            all_tiles.add(Tile(tiles[0], tiles[1], player["color"]))
+                #If we start to override the players' marks
+                if player["occupied_tiles"][player["turns"]]:
+                    fourth_mark = player["occupied_tiles"][player["turns"]]
+                    self.tic_tac_table[fourth_mark[0]][fourth_mark[1]] = ""
+                    # CHANGE THIS MARK POSITION TO THE NEW ONE
 
-            player["turns"] = (player["turns"] + 1) % 3
-            self.player1_turn = not self.player1_turn
+                player["occupied_tiles"][player["turns"]] = board_coord
+                player["turns"] = (player["turns"] + 1) % 3
 
-    def update_table(self, tile):
-        # Clear the Table
-        for i in range(3):
-            for j in range(3):
-                self.tic_tac_table[i][j] = ""
-                if (i, j) in self.player1["occupied_tiles"][:]:
-                    self.tic_tac_table[i][j] = "X"
-                elif (i, j) in self.player2["occupied_tiles"][:]:
-                    self.tic_tac_table[i][j] = "O"
-
-                '''
-                # draw all X
-                x_image = pygame.image.load(self.player1["image"])
-                screen.blit(x_image, self.get_tiles((i, j)))
-                #x_tile = Tile(i,j)
-                #self.Xes.add(x_tile)
-
-                # draw all O
-                o_image = pygame.image.load(self.player2["image"])
-                screen.blit(o_image, self.get_tiles((i, j)))
-                '''
-
-        #all_tiles.update()
-        all_tiles.draw(screen)
-        pygame.display.flip()
+                self.update_screen(tile)
+                self.player1_turn = not self.player1_turn
 
     def check_winner(self):
         # First Row
@@ -147,7 +187,7 @@ class TicTacToe:
         elif self.tic_tac_table[1][0] == self.tic_tac_table[1][1] == self.tic_tac_table[1][2] != "":
             print("The winner is:", self.tic_tac_table[1][0])
         # Third Row
-        elif self.tic_tac_table[2][0] == self.tic_tac_table[2][1] == self.tic_tac_table[2][2] != "" :
+        elif self.tic_tac_table[2][0] == self.tic_tac_table[2][1] == self.tic_tac_table[2][2] != "":
             print("The winner is:", self.tic_tac_table[2][0])
 
         # First Column
@@ -167,63 +207,24 @@ class TicTacToe:
         elif self.tic_tac_table[0][2] == self.tic_tac_table[1][1] == self.tic_tac_table[2][0] != "":
             print("The winner is:", self.tic_tac_table[0][2])
 
-
-    def check_events(self, event):
+    def check_mouse_coords(self):
         pygame.time.delay(100)
 
-        '''
-        # Keyboard Action
-        elif event.type == pygame.KEYDOWN:
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT]:  # We can check if a key is pressed like this
-
-            elif keys[pygame.K_RIGHT]:
-
-            elif keys[pygame.K_UP]:
-
-            elif keys[pygame.K_DOWN]:
-
-        '''
-
         # Mouse Action
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_coord = pygame.mouse.get_pos()
+        mouse_coord = pygame.mouse.get_pos()
+        for tile in self.board.tiles_on_board:
+            if tile.collidepoint(mouse_coord):
+                return tile.topleft
 
-            # First Row
-            if 200 < mouse_coord[0] < 400 and 0 < mouse_coord[1] < 200:
-                self.update_player((0, 0))
-                self.update_table((0, 0))
-            if 400 < mouse_coord[0] < 600 and 0 < mouse_coord[1] < 200:
-                self.update_player((0, 1))
-                self.update_table((0, 1))
-            if 600 < mouse_coord[0] < 800 and 0 < mouse_coord[1] < 200:
-                self.update_player((0, 2))
-                self.update_table((0, 2))
+    def proba(self):
+        Tiles = pygame.sprite.Group()
+        Tiles.add(self.sprite_X, self.sprite_O)
+        Tiles.update()
 
-            # Second Row
-            if 200 < mouse_coord[0] < 400 and 200 < mouse_coord[1] < 400:
-                self.update_player((1, 0))
-                self.update_table((1, 0))
-            if 400 < mouse_coord[0] < 600 and 200 < mouse_coord[1] < 400:
-                self.update_player((1, 1))
-                self.update_table((1, 1))
-            if 600 < mouse_coord[0] < 800 and 200 < mouse_coord[1] < 400:
-                self.update_player((1, 2))
-                self.update_table((1, 2))
+        rects = Tiles.draw(screen)
 
-            # Third Row
-            if 200 < mouse_coord[0] < 400 and 400 < mouse_coord[1] < 600:
-                self.update_player((2, 0))
-                self.update_table((2, 0))
-            if 400 < mouse_coord[0] < 600 and 400 < mouse_coord[1] < 600:
-                self.update_player((2, 1))
-                self.update_table((2, 1))
-            if 600 < mouse_coord[0] < 800 and 400 < mouse_coord[1] < 600:
-                self.update_player((2, 2))
-                self.update_table((2, 2))
 
-            self.check_winner()
-            print(self)
+
 
     def start_game(self):
         game.draw_table()
@@ -233,19 +234,18 @@ class TicTacToe:
                 if event.type == pygame.QUIT:
                     self.running = False
 
-                self.check_events(event)
-                pygame.display.update()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    tile = self.check_mouse_coords()
+
+                    self.proba()
+
+                    #self.update_player(tile)
+                    #self.check_winner()
+                    print(self)
 
         else:
             pygame.quit()
 
-
-tile_1 = {
-    "x_coord": 200,
-    "y_coord": 0,
-    "side": 200,
-    "width": 5
-}
 
 if __name__ == '__main__':
     pygame.init()
@@ -253,3 +253,16 @@ if __name__ == '__main__':
     game = TicTacToe()
     game.start_game()
 
+'''
+# MENU
+# Keyboard Action
+elif event.type == pygame.KEYDOWN:
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:  # We can check if a key is pressed like this
+
+    elif keys[pygame.K_RIGHT]:
+
+    elif keys[pygame.K_UP]:
+
+    elif keys[pygame.K_DOWN]:
+'''
