@@ -1,20 +1,20 @@
-# TODO: Write the GAME
-
 import pygame
 
 # (0,0) = Top Left Corner
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
-screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
+window_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+screen = pygame.display.set_mode(window_size)
 
-GAME_NAME = "TIC TAC TOE MotherFucker"
+GAME_NAME = "TIC TAC TOE"
 pygame.display.set_caption(GAME_NAME)
-background = pygame.image.load("images/Bamboo_bc_1.bmp").convert()
 
+background = pygame.Surface(screen.get_size())
+background_image = pygame.image.load("images/Bamboo_bc_1.bmp").convert()
 x_mark = pygame.image.load("images/Player_X.png").convert_alpha()
 o_mark = pygame.image.load("images/Player_O.png").convert_alpha()
 
-class Tiles(pygame.sprite.Sprite):
+class Tiles(pygame.sprite.DirtySprite):
     def __init__(self, new_image, x, y):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
@@ -22,8 +22,6 @@ class Tiles(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.x = y
-
-        self.update()
 
     def update(self):
         self.rect.x += 50
@@ -73,10 +71,6 @@ class Board:
 
 class TicTacToe:
     def __init__(self):
-
-        self.sprite_X = Tiles(x_mark, 200, 0)
-        self.sprite_O = Tiles(o_mark, 200, 0)
-
         self.board = Board()
         self.tic_tac_table = [
             ["", "", ""],
@@ -121,40 +115,48 @@ class TicTacToe:
         self.running = True
 
     def __str__(self):
+
         return f"{self.tic_tac_table[0][:]}\n" \
                f"{self.tic_tac_table[1][:]}\n" \
-               f"{self.tic_tac_table[2][:]}\n"
+               f"{self.tic_tac_table[2][:]}\n" \
+               f"\n\n\n\n"
 
-    @staticmethod
-    def draw_table():
 
-        screen.blit(background, [0, 0])
-
+    def draw_lines(self):
         # -- update the table
         line_color = pygame.Color(0, 0, 0)
         # Vertical
-        pygame.draw.line(screen, line_color, (200, 0), (200, 600), 10)
-        pygame.draw.line(screen, line_color, (400, 0), (400, 600), 10)
-        pygame.draw.line(screen, line_color, (600, 0), (600, 600), 10)
-        pygame.draw.line(screen, line_color, (800, 0), (800, 600), 10)
+        pygame.draw.line(background, line_color, (200, 0), (200, 600), 10)
+        pygame.draw.line(background, line_color, (400, 0), (400, 600), 10)
+        pygame.draw.line(background, line_color, (600, 0), (600, 600), 10)
+        pygame.draw.line(background, line_color, (800, 0), (800, 600), 10)
 
         # Horizontal
-        pygame.draw.line(screen, line_color, (200, 0), (800, 0), 10)
-        pygame.draw.line(screen, line_color, (200, 200), (800, 200), 10)
-        pygame.draw.line(screen, line_color, (200, 400), (800, 400), 10)
-        pygame.draw.line(screen, line_color, (200, 600), (800, 600), 10)
+        pygame.draw.line(background, line_color, (200, 0), (800, 0), 10)
+        pygame.draw.line(background, line_color, (200, 200), (800, 200), 10)
+        pygame.draw.line(background, line_color, (200, 400), (800, 400), 10)
+        pygame.draw.line(background, line_color, (200, 600), (800, 600), 10)
 
+    def draw_table(self):
+        background.blit(background_image, (0, 0))
+
+        self.draw_lines()
+
+        screen.blit(background, (0, 0))
         pygame.display.update()
 
     def update_screen(self, tile):
-        # UPDATE ALL THE SPRITES
-        # maybe the sprite.update redraw all the sprites
+        background.blit(background_image, (0, 0))
+        self.draw_lines()
 
-        if self.player1_turn:
-            screen.blit(self.player1["image"], tile)
-        else:
-            screen.blit(self.player2["image"], tile)
+        for coord in self.player1["occupied_tiles"]:
+            if coord:
+                background.blit(self.player1["image"], self.tiles[coord])
+        for coord in self.player2["occupied_tiles"]:
+            if coord:
+                background.blit(self.player2["image"], self.tiles[coord])
 
+        screen.blit(background, (0, 0))
         pygame.display.update()
 
     def update_player(self, tile):
@@ -216,15 +218,6 @@ class TicTacToe:
             if tile.collidepoint(mouse_coord):
                 return tile.topleft
 
-    def proba(self):
-        Tiles = pygame.sprite.Group()
-        Tiles.add(self.sprite_X, self.sprite_O)
-        Tiles.update()
-
-        rects = Tiles.draw(screen)
-
-
-
 
     def start_game(self):
         game.draw_table()
@@ -236,11 +229,8 @@ class TicTacToe:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     tile = self.check_mouse_coords()
-
-                    self.proba()
-
-                    #self.update_player(tile)
-                    #self.check_winner()
+                    self.update_player(tile)
+                    self.check_winner()
                     print(self)
 
         else:
