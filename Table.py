@@ -1,77 +1,98 @@
-import pygame
-from pygame.locals import KEYDOWN
+"""
+Contains all the information related to the Board class
+"""
 
-# dirty sprite example
-
-#   width and height of window
-win_size = (900, 600)  # you may need to adjust this for windows, linux
+from Macros import *
 
 
-class Face(pygame.sprite.DirtySprite):  # our DirtySprite class
+class Board:
+    """
+    Represents the table for the game, where the tiles are part of the board
+     - if I click on a certain Tile object it will change accordingly to the game
+    """
 
-    def __init__(self, center, dx, dy):
-        pygame.sprite.DirtySprite.__init__(self)  # always need to have this call to super constructor
+    def __init__(self):
+        """
+        Initializes the size of one tile
+        the positions of the tiles based on the screen (macro)
+        and the positions of the tiles based on the table
+        """
 
-        self.image = pygame.image.load("images/Player_X.png")
-        self.rect = self.image.get_rect(center=center)  # rect controls target place when copied to screen
-        self.dx, self.dy = dx, dy  # change to move every frame
+        tile_width = 200
+        tile_height = 200
 
-    def update(self):  # make changes for this time tick
-        x, y = self.rect.center  # move current center
-        x = (x + self.dx) % win_size[0]  # move by dx,dy and wrap modulo window size
-        y = (y + self.dy) % win_size[1]
-        self.rect.center = (x, y)  # changes where sprite will be copied to buffer
-        self.dirty = 1  # force redraw from image, since we moved the sprite rect
+        # First Row
+        self.tile1 = pygame.Rect(200, 0, tile_width, tile_height)
+        self.tile2 = pygame.Rect(400, 0, tile_width, tile_height)
+        self.tile3 = pygame.Rect(600, 0, tile_width, tile_height)
+        # Second Row
+        self.tile4 = pygame.Rect(200, 200, tile_width, tile_height)
+        self.tile5 = pygame.Rect(400, 200, tile_width, tile_height)
+        self.tile6 = pygame.Rect(600, 200, tile_width, tile_height)
+        # Third Row
+        self.tile7 = pygame.Rect(200, 400, tile_width, tile_height)
+        self.tile8 = pygame.Rect(400, 400, tile_width, tile_height)
+        self.tile9 = pygame.Rect(600, 400, tile_width, tile_height)
 
+        self.tiles_on_board = [
+            self.tile1, self.tile2, self.tile3,
+            self.tile4, self.tile5, self.tile6,
+            self.tile7, self.tile8, self.tile9
+        ]
 
-def is_exit_event():
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            return True
-        if event.type == KEYDOWN:
-                return True
-    return False
+        self.tiles = {
+            # First Row
+            (0, 0): (200, 0),
+            (0, 1): (400, 0),
+            (0, 2): (600, 0),
+            (200, 0): (0, 0),
+            (400, 0): (0, 1),
+            (600, 0): (0, 2),
 
+            # Second Row
+            (1, 0): (200, 200),
+            (1, 1): (400, 200),
+            (1, 2): (600, 200),
+            (200, 200): (1, 0),
+            (400, 200): (1, 1),
+            (600, 200): (1, 2),
 
-def main():
-    # Initialize Everything
-    pygame.init()
-    draw_buffer = pygame.display.set_mode(win_size)
-    pygame.display.set_caption('Balls Ahoy')
+            # Third Row
+            (2, 0): (200, 400),
+            (2, 1): (400, 400),
+            (2, 2): (600, 400),
+            (200, 400): (2, 0),
+            (400, 400): (2, 1),
+            (600, 400): (2, 2),
+        }
 
-    # Create The Background used to restore sprite previous location
-    background = pygame.Surface(draw_buffer.get_size())  # make a surface the size of display area
-    background.blit(pygame.image.load("images/Bamboo_bc_1.bmp"), (0, 0))  # draw image into sprite surface
+    @staticmethod
+    def draw_lines():
+        """
+        Draws the vertical & horizontal lines on the table
+        """
 
-    # Prepare Game Objects
-    clock = pygame.time.Clock()  # Clock is object that will allow fairly exact frame rate
+        line_color = pygame.Color(0, 0, 0)
+        # Vertical
+        pygame.draw.line(background, line_color, (200, 0), (200, 600), 10)
+        pygame.draw.line(background, line_color, (400, 0), (400, 600), 10)
+        pygame.draw.line(background, line_color, (600, 0), (600, 600), 10)
+        pygame.draw.line(background, line_color, (800, 0), (800, 600), 10)
 
-    cx, cy = win_size[0]//2, win_size[1]//2  # figure out middle of display area
+        # Horizontal
+        pygame.draw.line(background, line_color, (200, 0), (800, 0), 10)
+        pygame.draw.line(background, line_color, (200, 200), (800, 200), 10)
+        pygame.draw.line(background, line_color, (200, 400), (800, 400), 10)
+        pygame.draw.line(background, line_color, (200, 600), (800, 600), 10)
 
-    s1 = Face((cx+100, cy+100), 10, -5)   # add face 1 100 down and to right from center 10 -5 is movement
-    s2 = Face((cx-100, cy-100), -16, -15)  # add face 2 100 left and to up from center -16 -15 is movement
+    def draw_table(self):
+        """
+        Draws all the images and lines on the screen
+        """
 
-    my_sprites = pygame.sprite.LayeredDirty()  # holds sprites to be drawn
-    my_sprites.add(s1, s2)  # add both to our group
-    my_sprites.clear(draw_buffer, background)  # copy background to screen
+        background.blit(background_image, (0, 0))
 
-    # Main Loop:
+        self.draw_lines()
 
-    while True:
-        if is_exit_event():
-            break  # break out of loop and exit
-
-        my_sprites.update()  # call update on all sprites
-
-        # for each dirty sprint, erase previous rect with background copy
-        # and then copy new sprite to buffer
-        rects = my_sprites.draw(draw_buffer)
-
-        clock.tick(18)  # times per second, delays for the time till next frame point
-        pygame.display.update(rects)  # copy rects from buffer to screen
-
-    pygame.quit()
-
-
-if __name__ == '__main__':
-    main()
+        screen.blit(background, (0, 0))
+        pygame.display.update()
